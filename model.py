@@ -98,15 +98,3 @@ def train(batch_size=32):
 # model.summary()
 
 # print(get_accuracy())
-valid_ids, valid_labels, valid_paths = data.process_data_annotations('f:/fourniture_classification/validation',
-                                                                         'f:/fourniture_classification/validation.json')
-valid_gen = data.data_gen(valid_paths, valid_labels,
-                          batch_size=32, is_shuffle=False)
-labels=[]
-for i in range(ceil(len(valid_labels)/32)):
-    labels.append(next(valid_gen)[1])
-labels = np.array(labels).reshape([None])
-valid_labels = np.array(valid_labels)
-print(labels.shape)
-print(valid_labels.shape)
-print(np.sum(labels==valid_labels))

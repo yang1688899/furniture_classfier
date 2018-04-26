@@ -37,7 +37,7 @@ def process_data_annotations(dir,filepath):
 
 def data_gen(img_paths,img_labels,batch_size=32,is_shuffle=True):
     num_sample = len(img_paths)
-    # img_labels = LabelBinarizer().fit_transform(img_labels)
+    img_labels = LabelBinarizer().fit_transform(img_labels)
     while True:
 
         if is_shuffle:
