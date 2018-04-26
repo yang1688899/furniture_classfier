@@ -23,7 +23,7 @@ def process_data_annotations(dir,filepath):
     image_ids_exit=[]
     image_labels_exit = []
     image_path_exit = []
-    for i in range(len(num_sample)):
+    for i in range(num_sample):
         img_path = '%s/%s.jpg' % (dir, image_ids[i])
         if os.path.exists(img_path):
             image_ids_exit.append(image_ids[i])
@@ -37,7 +37,7 @@ def process_data_annotations(dir,filepath):
 
 def data_gen(img_paths,img_labels,batch_size=32,is_shuffle=True):
     num_sample = len(img_paths)
-    img_labels = LabelBinarizer().fit_transform(img_labels)
+    # img_labels = LabelBinarizer().fit_transform(img_labels)
     while True:
 
         if is_shuffle:
