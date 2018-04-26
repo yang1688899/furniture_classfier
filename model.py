@@ -23,15 +23,34 @@ def network():
     model = Model(inputs=base_model.input, outputs=predictions)
     return  base_model,model
 
-# def get_accuracy(prediction):
-#     np.max
+def get_accuracy(batch_size=32):
+    # np.max(predictions,axis=0)
+    valid_ids, valid_labels, valid_paths = data.process_data_annotations('f:/fourniture_classification/validation',
+                                                                         'f:/fourniture_classification/validation.json')
+    valid_gen = data.data_gen(valid_paths, valid_labels,
+                              batch_size=batch_size, is_shuffle=False)
+
+    model = load_model("./model.h5")
+    predictions = model.predict_generator(valid_gen)
+
+    print("predictions: " + len(predictions))
+    print("validations: " + len(valid_labels))
+
+    acccracy = sum([valid_labels == np.argmax(predictions,axis=0)])/len(predictions)
+
+    return acccracy
+
 
 def train(batch_size=32):
     # train_gen = data.data_gen('G:/fourniture_classification/validation', 'G:/fourniture_classification/validation.json',batch_size=batch_size)
     # valid_gen = data.data_gen('G:/fourniture_classification/validation', 'G:/fourniture_classification/validation.json',batch_size=batch_size,is_shuffle=False)
-    train_gen = data.data_gen('f:/fourniture_classification/validation', 'f:/fourniture_classification/validation.json',
+
+    train_ids,train_labels,train_paths = data.process_data_annotations('f:/fourniture_classification/train', 'f:/fourniture_classification/train.json')
+    valid_ids,valid_labels,valid_paths = data.process_data_annotations('f:/fourniture_classification/validation', 'f:/fourniture_classification/validation.json')
+
+    train_gen = data.data_gen(train_paths, train_labels,
                               batch_size=batch_size)
-    valid_gen = data.data_gen('f:/fourniture_classification/validation', 'f:/fourniture_classification/validation.json',
+    valid_gen = data.data_gen(valid_paths, valid_labels,
                               batch_size=batch_size, is_shuffle=False)
     base_model,model = network()
     for layer in base_model.layers:
