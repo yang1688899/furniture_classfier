@@ -7,9 +7,8 @@ import numpy as np
 import data
 from math import ceil
 from keras.models import load_model
-
-num_train = 194828
-num_validation = 6400
+from keras import optimizers
+import os
 
 
 def network():
@@ -33,68 +32,84 @@ def network():
     model = Model(inputs=base_model.input, outputs=predictions)
     return  base_model,model
 
-def get_accuracy(batch_size=32):
+def get_accuracy(modelfile,batch_size=32):
     # np.max(predictions,axis=0)
     valid_ids, valid_labels, valid_paths = data.process_data_annotations('f:/fourniture_classification/validation',
                                                                          'f:/fourniture_classification/validation.json')
     valid_gen = data.data_gen(valid_paths, valid_labels,
                               batch_size=batch_size, is_shuffle=False)
 
-    model = load_model("./model.h5")
+    model = load_model(modelfile)
     predictions = model.predict_generator(valid_gen,steps=ceil(len(valid_labels)/batch_size))
     valid_labels = np.array(valid_labels,dtype='int64')
 
-    print(len(predictions))
-    print(len(valid_labels))
-    print(predictions.shape)
-    print(predictions[0])
-    print(np.sum(predictions[0]))
-    print(np.max(predictions[0]))
-
     max_preds = np.argmax(predictions, axis=1)
-    print(max_preds.shape)
-    print(valid_labels.shape)
+    acccracy = np.sum([valid_labels == max_preds+1])/len(predictions)
 
-    print(max_preds)
-    print(valid_labels)
+    print('valudation accuracy is: %s'%acccracy)
 
-    print(type(max_preds[0]))
-    print(type(valid_labels[0]))
+    loss = model.evaluate_generator(valid_gen,steps=ceil(len(valid_labels)/batch_size))
 
-    acccracy = np.sum([valid_labels == max_preds])/len(predictions)
-
-    return acccracy
+    print('valudation loss is: %s'%loss)
 
 
-def train(batch_size=32):
+def train(model_path,save_path,rate=0.00003,epochs=1,batch_size=32):
     # train_gen = data.data_gen('G:/fourniture_classification/validation', 'G:/fourniture_classification/validation.json',batch_size=batch_size)
     # valid_gen = data.data_gen('G:/fourniture_classification/validation', 'G:/fourniture_classification/validation.json',batch_size=batch_size,is_shuffle=False)
 
     train_ids,train_labels,train_paths = data.process_data_annotations('f:/fourniture_classification/train', 'f:/fourniture_classification/train.json')
     valid_ids,valid_labels,valid_paths = data.process_data_annotations('f:/fourniture_classification/validation', 'f:/fourniture_classification/validation.json')
 
+    num_train = len(train_paths)
+    num_validation = len(valid_paths)
+
     train_gen = data.data_gen(train_paths, train_labels,
                               batch_size=batch_size)
     valid_gen = data.data_gen(valid_paths, valid_labels,
                               batch_size=batch_size, is_shuffle=False)
-    base_model,model = network()
-    for layer in base_model.layers:
-        layer.trainable = True
 
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+    if os.path.exists(model_path):
 
-    print("begin training......")
-    print("train samples: %s"%len(train_labels))
-    print("valid samples: %s"%len(valid_labels))
+        print("loading model from %s"%model_path)
+        model = load_model(model_path)
+        for layer in model.layers:
+            layer.trainable = True
 
-    model.fit_generator(train_gen, steps_per_epoch=ceil(num_train/batch_size), epochs=1,validation_data=valid_gen, validation_steps=ceil(num_validation/batch_size),)
+        print("begin training......")
+        print("train samples: %s" % len(train_labels))
+        print("valid samples: %s" % len(valid_labels))
 
-    model.save('./model.h5')
-    print("model saved")
+        adam = optimizers.Adam(lr=rate)
+        model.compile(optimizer=adam, loss='categorical_crossentropy')
 
-# train(batch_size=16)
+        model.fit_generator(train_gen, steps_per_epoch=ceil(num_train / batch_size), epochs=epochs,
+                            validation_data=valid_gen, validation_steps=ceil(num_validation / batch_size))
+
+        model.save(save_path)
+        print("model saved")
+
+    else:
+        base_model,model = network()
+        for layer in base_model.layers:
+            layer.trainable = False
+
+        print("begin training......")
+        print("train samples: %s"%len(train_labels))
+        print("valid samples: %s"%len(valid_labels))
+
+        sgd = optimizers.SGD(lr=rate)
+        model.compile(optimizer=sgd, loss='categorical_crossentropy')
+        model.fit_generator(train_gen, steps_per_epoch=ceil(num_train/batch_size), epochs=epochs,validation_data=valid_gen, validation_steps=ceil(num_validation/batch_size))
+
+        model.save(save_path)
+
+        print("model saved")
+
+
+# train(batch_size=64)
 
 # model = load_model('./model.h5')
 # model.summary()
 
-# print(get_accuracy())
+get_accuracy('./model_epoch_3.h5')
+# train('./model_epoch_6.h5','./model_epoch_3.h5',rate=0.0000000003,epochs=1,batch_size=32)
