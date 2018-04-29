@@ -28,19 +28,20 @@ def process_annotation_test(img_dir,filepath):
 
 def test_generator(img_paths, batch_size=32):
     num_test = len(img_paths)
-    for offset in range(0, num_test, batch_size):
-        samples = []
-        batch_test = img_paths[offset:offset+batch_size]
-        for i in range(len(batch_test)):
-            img = image.load_img(batch_test[i], target_size=(224, 224))
-            img = image.img_to_array(img)
-            img = preprocess_input(img)
-            samples.append(img)
-        yield np.array(samples)
+    while True:
+        for offset in range(0, num_test, batch_size):
+            samples = []
+            batch_test = img_paths[offset:offset+batch_size]
+            for i in range(len(batch_test)):
+                img = image.load_img(batch_test[i], target_size=(224, 224))
+                img = image.img_to_array(img)
+                img = preprocess_input(img)
+                samples.append(img)
+            yield np.array(samples)
 
 def test(model_file,batch_size=32):
-    img_id_all, img_id_exits, img_id_nonexits, img_paths = process_annotation_test('G:/fourniture_classification/test',
-                                                                 'G:/fourniture_classification/test.json')
+    img_id_all, img_id_exits, img_id_nonexits, img_paths = process_annotation_test('f:/fourniture_classification/test',
+                                                                 'f:/fourniture_classification/test.json')
     test_gen = test_generator(img_paths,batch_size=batch_size)
     model = load_model(model_file)
     predictions = model.predict_generator(test_gen, steps=ceil(len(img_paths)/batch_size) )
@@ -60,6 +61,4 @@ def test(model_file,batch_size=32):
 
 
 
-img_id_all, img_id_exits, img_id_nonexits, img_paths = process_annotation_test('G:/fourniture_classification/test','G:/fourniture_classification/test.json')
-
-print(len(img_id_all),len(img_id_exits),len(img_id_nonexits),len(img_paths))
+test('./model/model_epoch_3.h5',batch_size=32)

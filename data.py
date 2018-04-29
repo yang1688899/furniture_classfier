@@ -63,11 +63,3 @@ def data_gen(img_paths,img_labels,batch_size=32,is_shuffle=True):
                     features.append(preprocess_input(img))
                     labels.append(batch_labels[i])
             yield np.array(features), np.array(labels)
-
-
-
-
-# load_data("haha","./README.md")
-train_ids,train_labels,train_paths = process_data_annotations('f:/fourniture_classification/train', 'f:/fourniture_classification/train.json')
-print(np.min(train_labels))
-print(np.max(train_labels))

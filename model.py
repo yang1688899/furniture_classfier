@@ -2,7 +2,7 @@ from keras.applications.vgg19 import VGG19
 from keras.preprocessing import image
 from keras.applications.vgg19 import preprocess_input
 from keras.models import Model
-from keras.layers import Dense, Flatten,GlobalAveragePooling2D
+from keras.layers import Dense, Flatten,GlobalAveragePooling2D,Dropout
 import numpy as np
 import data
 from math import ceil
@@ -14,19 +14,10 @@ import os
 def network():
     base_model = VGG19(weights='imagenet', include_top=False,input_shape=(224,224,3))
     x = base_model.output
-
-    # x = Flatten()(x)
-    # # x = GlobalAveragePooling2D()(x)
-    # x = Dense(4096, activation='relu')(x)
-    # x = Dense(4096, activation='relu')(x)
-    # predictions = Dense(128, activation='softmax')(x)
-
     x = Flatten()(x)
-    # x = GlobalAveragePooling2D()(x)
-    # let's add a fully-connected layer
+    x = Dropout()(x)
     x = Dense(1024, activation='relu')(x)
     x = Dense(1024, activation='relu')(x)
-    # and a logistic layer -- let's say we have 200 classes
     predictions = Dense(128, activation='softmax')(x)
 
     model = Model(inputs=base_model.input, outputs=predictions)
@@ -108,8 +99,8 @@ def train(model_path,save_path,rate=0.00003,epochs=1,batch_size=32):
 
 # train(batch_size=64)
 
-# model = load_model('./model.h5')
+# model = load_model('./model/model_epoch_1_dropout.h5')
 # model.summary()
 
-get_accuracy('./model_epoch_3.h5')
-# train('./model_epoch_6.h5','./model_epoch_3.h5',rate=0.0000000003,epochs=1,batch_size=32)
+# get_accuracy('./model/model_epoch_2_dropout.h5')
+train('','./model/model_dropout.h5',epochs=3,batch_size=32)
