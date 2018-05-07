@@ -61,4 +61,4 @@ def test(model_file,batch_size=32):
 
 
 
-test('./model/model_dropout_epoch4.h5',batch_size=32)
+test('./model/model_4fclayer_epoch4.h5',batch_size=32)

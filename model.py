@@ -44,7 +44,7 @@ def get_accuracy(modelfile,batch_size=32):
     print('valudation loss is: %s'%loss)
 
 
-def train(model_path,save_path,rate=0.00003,epochs=1,batch_size=32):
+def train(model_path,save_path,rate=0.00003,epochs=1,batch_size=32,is_full_train=True):
     # train_gen = data.data_gen('G:/fourniture_classification/validation', 'G:/fourniture_classification/validation.json',batch_size=batch_size)
     # valid_gen = data.data_gen('G:/fourniture_classification/validation', 'G:/fourniture_classification/validation.json',batch_size=batch_size,is_shuffle=False)
 
@@ -63,9 +63,14 @@ def train(model_path,save_path,rate=0.00003,epochs=1,batch_size=32):
 
         print("loading model from %s"%model_path)
         model = load_model(model_path)
-        for layer in model.layers:
-            layer.trainable = True
+        if is_full_train:
+            for layer in model.layers:
+                layer.trainable = True
+        else:
+            for layer in model.layers[:22]:
+                layer.trainable = False
 
+        model.summary()
         print("begin training......")
         print("train samples: %s" % len(train_labels))
         print("valid samples: %s" % len(valid_labels))
@@ -96,7 +101,7 @@ def train(model_path,save_path,rate=0.00003,epochs=1,batch_size=32):
 
         print("model saved")
 
-def retrain_with_dropout(modelfile,save_path,rate=0.00003,epochs=1,batch_size=32):
+def retrain_with_achitature(modelfile,save_path,rate=0.00003,epochs=1,batch_size=32):
     train_ids, train_labels, train_paths = data.process_data_annotations('f:/fourniture_classification/train',
                                                                          'f:/fourniture_classification/train.json')
     valid_ids, valid_labels, valid_paths = data.process_data_annotations('f:/fourniture_classification/validation',
@@ -116,8 +121,9 @@ def retrain_with_dropout(modelfile,save_path,rate=0.00003,epochs=1,batch_size=32
     uper_model = old_model.get_layer('flatten_1')
     x = uper_model.output
     x = Dropout(0.5)(x)
+    x = Dense(2042, activation='relu')(x)
     x = Dense(1024, activation='relu')(x)
-    x = Dense(1024, activation='relu')(x)
+    x = Dense(512, activation='relu')(x)
     predictions = Dense(128, activation='softmax')(x)
 
     model = Model(old_model.input,outputs=predictions)
@@ -128,8 +134,8 @@ def retrain_with_dropout(modelfile,save_path,rate=0.00003,epochs=1,batch_size=32
     print("train samples: %s" % len(train_labels))
     print("valid samples: %s" % len(valid_labels))
 
-    adam = optimizers.Adam(lr=rate)
-    model.compile(optimizer=adam, loss='categorical_crossentropy')
+    sgd = optimizers.SGD(lr=rate)
+    model.compile(optimizer=sgd, loss='categorical_crossentropy')
 
     model.fit_generator(train_gen, steps_per_epoch=ceil(num_train / batch_size), epochs=epochs,
                         validation_data=valid_gen, validation_steps=ceil(num_validation / batch_size))
@@ -140,6 +146,6 @@ def retrain_with_dropout(modelfile,save_path,rate=0.00003,epochs=1,batch_size=32
 # model = load_model('./model/model_dropout_epoch3.h5')
 # model.summary()
 #
-get_accuracy('./model/model_dropout_epoch4.h5')
-# train('./model/model_dropout_epoch3.h5','./model/model_dropout_epoch4.h5',epochs=1,rate=3e-6,batch_size=32)
-# retrain_with_dropout('./model/model_epoch_1_dropout.h5','./model/model_dropout_epoch2.h5',rate=0.00001,epochs=1,batch_size=32)
+get_accuracy('./model/model_4fclayer_epoch7.h5')
+# train('./model/model_4fclayer_epoch6.h5','./model/model_4fclayer_epoch7.h5',epochs=1,rate=1e-9,batch_size=16,is_full_train=True)
+# retrain_with_achitature('./model/model_dropout_epoch5.h5','./model/model_4fclayer_epoch1.h5',rate=0.0003,epochs=1,batch_size=32)
