@@ -1,5 +1,4 @@
 import json
-import cv2
 import os
 import numpy as np
 from sklearn.utils import shuffle
@@ -7,10 +6,6 @@ from sklearn.preprocessing import LabelBinarizer
 from keras.applications.vgg19 import preprocess_input
 from keras.preprocessing import image
 
-# file = open('f:/fourniture_classification/validation.json')
-# train = json.load(file)
-#
-# print(len(train['annotations']))
 
 def process_data_annotations(dir,filepath):
     labelfile = open(filepath)
@@ -58,8 +53,6 @@ def data_gen(img_paths,img_labels,batch_size=32,is_shuffle=True):
                     img = image.load_img(img_path, target_size=(224, 224))
                     img = image.img_to_array(img)
                     img = preprocess_input(img)
-                    # img = cv2.imread(img_path)
-                    # img = cv2.resize(img,(224,224))
                     features.append(preprocess_input(img))
                     labels.append(batch_labels[i])
             yield np.array(features), np.array(labels)

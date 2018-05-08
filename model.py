@@ -1,4 +1,5 @@
 from keras.applications.vgg19 import VGG19
+from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.applications.vgg19 import preprocess_input
 from keras.models import Model
@@ -10,8 +11,10 @@ from keras.models import load_model
 from keras import optimizers
 import os
 
+base_model = InceptionV3(weights='imagenet', include_top=True,input_shape=(299,299,3))
+base_model.summary()
 
-def network():
+def vgg_network():
     base_model = VGG19(weights='imagenet', include_top=False,input_shape=(224,224,3))
     x = base_model.output
     x = Flatten()(x)
@@ -85,7 +88,7 @@ def train(model_path,save_path,rate=0.00003,epochs=1,batch_size=32,is_full_train
         print("model saved")
 
     else:
-        base_model,model = network()
+        base_model,model = vgg_network()
         for layer in base_model.layers:
             layer.trainable = False
 
@@ -146,6 +149,6 @@ def retrain_with_achitature(modelfile,save_path,rate=0.00003,epochs=1,batch_size
 # model = load_model('./model/model_dropout_epoch3.h5')
 # model.summary()
 #
-get_accuracy('./model/model_4fclayer_epoch7.h5')
+# get_accuracy('./model/model_4fclayer_epoch7.h5')
 # train('./model/model_4fclayer_epoch6.h5','./model/model_4fclayer_epoch7.h5',epochs=1,rate=1e-9,batch_size=16,is_full_train=True)
 # retrain_with_achitature('./model/model_dropout_epoch5.h5','./model/model_4fclayer_epoch1.h5',rate=0.0003,epochs=1,batch_size=32)
